@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>Space tour</title>
+    <meta charset="utf-8">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Space tour">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, width=device-width, height=device-height" />
+
+    <link rel="stylesheet" href="css/stylesheet.css" type="text/css" charset="utf-8" />
+
+    <script src="src/phaser.min.js"></script>
+    <script src="src/Boot.js"></script>
+    <script src="src/Preloader.js"></script>
+    <script src="src/Menu.js"></script>
+    <script src="src/Game.js"></script>
+
+</head>
+
+<body>
+    <script type="text/javascript">
+        var width, height, game
+
+            function init() {
+
+                //========== DOMishParser for Cocoon.js ============
+                (function(cocoonjsphaser) {
+
+                    cocoonjsphaser.utils = {
+                        fixDOMParser: function() {
+                            window.DOMParser = DOMishParser;
+                        }
+                    };
+
+                    function DOMishParser() {}
+                    DOMishParser.prototype.parseFromString = function(data) {
+                        return new DOMishObject(JSON.parse(data));
+                    };
+
+                    function DOMishAttributes() {}
+                    DOMishAttributes.prototype.getNamedItem = function(name) {
+                        return {
+                            nodeValue: this[name] || null
+                        };
+                    };
+
+                    function makeDOMishObject(data) {
+                        return new DOMishObject(data);
+                    }
+
+                    function DOMishObject(data) {
+                        this.attributes = this.convertContent(data);
+                        this.length = Object.keys(this.attributes).length;
+                    }
+                    DOMishObject.prototype.documentElement = document;
+                    DOMishObject.prototype.convertContent = function(obj) {
+                        var attributes = new DOMishAttributes(),
+                            prop;
+
+                        for (prop in obj) {
+                            if (obj[prop] !== null && typeof obj[prop] === 'object') {
+                                attributes[prop] = Array.isArray(obj[prop]) ?
+                                    obj[prop].map(makeDOMishObject) : new DOMishObject(obj[prop]);
+                            } else {
+                                attributes[prop] = obj[prop];
+                            }
+                        }
+
+                        return attributes;
+                    };
+                    DOMishObject.prototype.getElementsByTagName = function(name) {
+                        return this.attributes[name] ?
+                            Array.isArray(this.attributes[name]) ?
+                            this.attributes[name] : [this.attributes[name]] : [];
+                    };
+
+                    DOMishObject.prototype.getAttribute = function(name) {
+                        return this.attributes.getNamedItem(name).nodeValue;
+                    };
+
+                }(window.cocoonjsphaser = window.cocoonjsphaser || {}));
+                if (navigator.isCocoonJS) {
+                    cocoonjsphaser.utils.fixDOMParser();
+                }
+
+                game = new Phaser.Game(640, 960, Phaser.CANVAS, '');
+                game.state.add('Boot', SpaceTour.Boot, true);
+                game.state.add('Preloader', SpaceTour.Preloader);
+                game.state.add('Menu', SpaceTour.Menu);
+                game.state.add('Game', SpaceTour.Game);
+            }
+
+            // Start the app
+        navigator.isCocoonJS ? init() : window.onload = init
+    </script>
+</body>
+
+</html>
